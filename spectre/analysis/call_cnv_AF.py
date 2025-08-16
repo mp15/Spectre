@@ -87,9 +87,11 @@ class CNVCall(object):
                     self.logger.debug(f'FP,{genomic_region} => {each_candidate.cn_status},{each_candidate.type}')
                 else:
                     # AF is already a float
-                    af = np.nanmean([var_record.samples[vcf_sample][af_tag] for var_record in \
+                    firsttuple = lambda x: x[0] if type(x) == tuple else x
+                    af = np.nanmean([firsttuple(var_record.samples[vcf_sample][af_tag]) for var_record in \
                         vcf_file.fetch(region=genomic_region) \
-                            if type(var_record.samples[vcf_sample][af_tag]) != tuple])
+                            if type(var_record.samples[vcf_sample][af_tag]) != tuple or \
+                            (type(var_record.samples[vcf_sample][af_tag]) == tuple and len(var_record.samples[vcf_sample][af_tag]) == 1) ])
                     if self.af_cn_state_concordance(af, each_candidate.cn_status):
                         cnv_calls[each_chromosome].append(each_candidate)
                     else:

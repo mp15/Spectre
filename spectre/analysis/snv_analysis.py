@@ -163,17 +163,21 @@ class SNVAnalysis(object):
                 [snv] = snv_record.samples.values()[0]
             chr_all[snv_record.chrom] += 1
             # check for multiple AFs in snv
-            if type(snv[self.af_tag]) == tuple: 
-                continue
+            if type(snv[self.af_tag]) == tuple:
+                if len(snv[self.af_tag]) != 1:
+                    continue
+                af = float(snv[self.af_tag][0])
+            else:
+                af = float(snv[self.af_tag])
             if snv_record.qual > self.min_snv_qual and snv[self.dp_tag] > self.min_coverage_site:
                 # We only expect a single sample column in the VCF
                 # get only HET genotypes
                 if self._is_gt_het(snv):
-                    if abs(self.perfect_het_af - snv[self.af_tag]) < self.max_deviation_perfect_het_af:
+                    if abs(self.perfect_het_af - af) < self.max_deviation_perfect_het_af:
                         chr_het[snv_record.chrom] += 1
                         cov_het[snv_record.chrom] += snv[self.dp_tag]
                 else:
-                    if snv[self.af_tag] >= self.min_hom_alt_af:
+                    if af >= self.min_hom_alt_af:
                         chr_alt[snv_record.chrom] += 1
         for chro in self.genome_info["chromosomes"]:
             chr_het_cov = cov_het[chro]/chr_het[chro] if chr_het[chro] > 0 else 0
@@ -214,15 +218,19 @@ class SNVAnalysis(object):
             except ValueError:
                 [snv] = snv_record.samples.values()[0]
             # check for multiple AFs in snv
-            if type(snv[self.af_tag]) == tuple: 
-                continue
+            if type(snv[self.af_tag]) == tuple:
+                if len(snv[self.af_tag]) != 1:
+                    continue
+                af = snv[self.af_tag][0]
+            else:
+                af = snv[self.af_tag]
             if use_chr_het_sites is not None:
                 if snv_record.chrom in use_chr_het_sites:
                     # Only high quality calls, threshold suggested by Medhat
                     if snv_record.qual > self.min_snv_qual:
                         # get only HET genotypes
                         if self._is_gt_het(snv):
-                            if abs(self.perfect_het_af - snv[self.af_tag]) < self.max_deviation_perfect_het_af:
+                            if abs(self.perfect_het_af - af) < self.max_deviation_perfect_het_af:
                                 self.perfect_het_depth.append(snv[self.dp_tag])
             else:
                 self.logger.error(f'use_chr_het_sites = {use_chr_het_sites}')
@@ -283,9 +291,15 @@ class SNVAnalysis(object):
                     if snv_record.qual > self.min_snv_qual:
                         total_sites += 1
                         [snv] = snv_record.samples.values()
-                        if type(snv[self.af_tag]) == tuple: 
-                            continue
-                        dp, gt, af = int(snv[self.dp_tag]), snv[self.gt_tag], float(snv[self.af_tag])
+                        # check for multiple AFs in snv
+                        if type(snv[self.af_tag]) == tuple:
+                            if len(snv[self.af_tag]) != 1:
+                                continue
+                            af = float(snv[self.af_tag][0])
+                        else:
+                            af = float(snv[self.af_tag])
+
+                        dp, gt = int(snv[self.dp_tag]), snv[self.gt_tag]
                         if gt == self.gt_alt:
                             loh_sites_count += 1
                             loh_per_cand += 1
