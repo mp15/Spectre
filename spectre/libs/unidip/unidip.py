@@ -35,7 +35,7 @@ class UniDip:
             url:    http://www.kdd.org/kdd2016/subtopic/view/skinny-dip-clustering-in-a-sea-of-noise
     """
     def __init__(self, dat, is_hist=False, alpha=0.05, ntrials=100, mrg_dst=1, debug=False):
-        self.dat = np.msort(np.array(dat)) if not is_hist else np.array(dat)
+        self.dat = np.sort(np.array(dat), axis=0) if not is_hist else np.array(dat)
         self.is_hist = is_hist
         self.alpha = alpha
         self.ntrials = ntrials
@@ -85,7 +85,7 @@ class UniDip:
                 plt.axvline(i[0], color="black")
                 plt.axvline(i[1], color="black")
         else:
-            dat = np.msort(self.dat)
+            dat = np.sort(self.dat, axis=0)
             plt.hist(dat, bins=30)
             plt.axvspan(dat[sub[0]], dat[sub[1]-1], color="orange", alpha=.3)
             for i in ints:
